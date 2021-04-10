@@ -61,7 +61,7 @@ WHERE pension_enrol = TRUE AND start_date BETWEEN '2003-01-01' AND '2003-12-31';
 SELECT 
 	COUNT(id)
 FROM employees 
-WHERE country != 'France' OR country != 'Germany';
+WHERE pension_enrol IS TRUE AND country NOT IN ('France', 'Germany');
 
 -- Obtain a count by department of the employees who started work with the corporation in 2013
 
