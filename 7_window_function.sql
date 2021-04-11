@@ -184,4 +184,77 @@ ORDER BY last_name;
 
 SELECT 
 	last_name,
-	
+	EXTRACT(MONTH FROM start_date) AS start_month,
+	EXTRACT(YEAR FROM start_date) AS start_year,
+	COUNT(id) OVER (PARTITION BY EXTRACT(YEAR FROM start_date), EXTRACT(MONTH FROM start_date))
+FROM employees;
+
+SELECT 
+	last_name,
+	start_date,
+	TO_CHAR(start_date, 'Month') || ' ' || TO_CHAR(start_date, 'yyyy') AS start_month,
+	COUNT(*) OVER (
+		PARTITION BY EXTRACT(YEAR FROM start_date), EXTRACT(MONTH FROM start_date)
+		) AS num_that_month
+FROM employees;
+
+SELECT 
+	last_name,
+	start_date,
+	CONCAT(TO_CHAR(start_date, 'Month'), ' ', TO_CHAR(start_date, 'yyyy')) AS start_month,
+	COUNT(*) OVER (
+		PARTITION BY EXTRACT(YEAR FROM start_date), EXTRACT(MONTH FROM start_date)
+		) AS num_that_month
+FROM employees;
+
+/* Get a table of employee id, first and last name, grade and salary, together with two new columns 
+ * showing the maximum salary and minimum salary for employees of their grade. */
+
+SELECT 
+	id,
+	first_name,
+	last_name,
+	grade,
+	salary,
+	MAX(salary) OVER (PARTITION BY grade) AS max_salary,
+	MIN(salary) OVER (PARTITION BY grade) AS min_salary
+FROM employees
+ORDER BY id;
+
+-- Add a column for each employee showing the ratio of their salary to the average of their team
+
+SELECT 
+	first_name || ' ' || last_name AS full_name,
+	salary,
+	t.name AS team_name,
+	ROUND(e.salary / AVG(e.salary) OVER (PARTITION BY e.team_id),2) AS team_ratio,
+	ROUND(e.salary / AVG(e.salary) OVER (PARTITION BY e.country), 2) AS country_ratio
+FROM employees e 
+INNER JOIN teams t 
+ON e.team_id = t.id
+ORDER BY team_ratio DESC NULLS LAST;
+
+/* Get a table of employees showing the order in which they started work with the corporation 
+ * split by depart by department. */
+
+SELECT 
+	first_name || ' ' || last_name AS employ_name,
+	start_date,
+	department,
+	RANK() OVER (PARTITION BY department ORDER BY start_date)
+FROM employees
+ORDER BY start_date;
+
+-- Find name of the employee that started to work first, per each department
+
+SELECT *
+FROM (SELECT 
+		first_name || ' ' || last_name AS employ_name,
+		start_date,
+		department,
+		RANK() OVER (PARTITION BY department ORDER BY start_date) AS ranking
+	FROM employees) AS t
+WHERE ranking = 1;
+
+
+
