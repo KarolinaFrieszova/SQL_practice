@@ -256,5 +256,30 @@ FROM (SELECT
 	FROM employees) AS t
 WHERE ranking = 1;
 
+/* Moving average */
+
+SELECT 
+	start_date,
+	salary,
+	ROUND(AVG(salary) OVER (ORDER BY start_date ASC ROWS 9 PRECEDING)) AS moving_avg_salary
+FROM employees;
+
+WITH unfiltered(row_num, start_date, salary, moving_avg_salary) AS (
+	SELECT 
+		ROW_NUMBER() OVER(ORDER BY start_date),
+		start_date,
+		salary,
+		AVG(salary) OVER (ORDER BY start_date ASC ROWS 9 PRECEDING)
+	FROM employees
+	)
+SELECT
+	start_date,
+	salary,
+	CASE
+		WHEN row_num >=10 THEN moving_avg_salary
+		ELSE NULL
+	END AS moving_avg_salary
+FROM unfiltered;
+
 
 
