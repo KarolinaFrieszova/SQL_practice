@@ -103,5 +103,33 @@ SELECT
 	COUNT(DISTINCT(employee_id))
 FROM employees_committees;
 
+-- How many employees do not serve on committee?
+
+SELECT
+	COUNT(*)
+FROM employees e
+LEFT JOIN employees_committees ec
+ON e.id = ec.employee_id 
+WHERE ec.employee_id IS NULL
+
+-- Get full employee details (including committee name) of any committee members based in China.
+
+SELECT 
+	e.*,
+	c.name AS committee_name
+FROM employees e 
+INNER JOIN employees_committees ec
+ON e.id = ec.employee_id 
+INNER JOIN committees c
+ON ec.committee_id = c.id
+WHERE e.country = 'China';
+
+/* Group committee members into the teams in which they work, counting the number of committee members
+ * in each team (including teams with no committee members). Order the list by the number of committee 
+ * members, highest first. */
+
+
+ */
+
 
 	
