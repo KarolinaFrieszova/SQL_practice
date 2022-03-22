@@ -134,3 +134,100 @@ WHERE country = N'Spain'
 AND NOT EXISTS (SELECT * 
 			FROM Sales.Orders AS O
 			WHERE O.custid = C.custid);
+
+/*	Query the Orders table and return, for each order, information about the current order and also the previous order ID */
+
+SELECT orderid, orderdate, empid, custid, 
+	(SELECT MAX(O2.orderid)
+	 FROM Sales.Orders AS O2
+	 WHERE O2.orderid < O1.orderid) AS previousorder
+FROM Sales.Orders AS O1;
+
+/*	Return for each order the next order.
+	The minimum value that is greater than the current value. */
+
+SELECT orderid, orderdate, empid, custid, 
+	(SELECT MIN(O2.orderid)
+	 FROM Sales.Orders AS O2
+	 WHERE O2.orderid > O1.orderid) AS previousorder
+FROM Sales.Orders AS O1;
+
+/* Using running aggregates */
+
+SELECT *
+FROM Sales.OrderTotalsByYear; -- the view has the total order quantity by year
+
+-- calculate running total qty up to and including that year's
+
+SELECT *, (SELECT SUM(OT2.qty)
+		   FROM Sales.OrderTotalsByYear AS OT2
+		   WHERE OT2.orderyear <= OT1.orderyear) AS runqty -- running total is the sum of the first year plus the second year, and so on
+FROM Sales.OrderTotalsByYear AS OT1
+ORDER BY OT1.orderyear;
+
+/*	Dealing with misbehaving subqueries
+	NULL trouble 
+	remember T-SQL uses three-valued logic because of its NULLs */
+
+-- return customers who did not place orders
+
+SELECT *
+FROM Sales.Customers
+WHERE custid NOT IN (SELECT custid
+					 FROM Sales.Orders);
+
+-- run:
+INSERT INTO [Sales].[Orders]
+           ([custid]
+           ,[empid]
+           ,[orderdate]
+           ,[requireddate]
+           ,[shippeddate]
+           ,[shipperid]
+           ,[freight]
+           ,[shipname]
+           ,[shipaddress]
+           ,[shipcity]
+           ,[shipregion]
+           ,[shippostalcode]
+           ,[shipcountry])
+     VALUES
+           (NULL
+           ,1
+           ,'20160212'
+           ,'20160212'
+           ,'20160212'
+           ,1
+           ,123.00
+           ,N'abc'
+           ,N'abc'
+           ,N'abc'
+           ,N'abc'
+           ,N'abc'
+           ,N'abc');
+GO
+
+SELECT *
+FROM Sales.Customers
+WHERE custid NOT IN (SELECT custid
+					 FROM Sales.Orders
+					 WHERE custid IS NOT NULL); -- explicitly exclude NULLs
+
+/*	22 NOT IN (1,2,.., NULL) -> 22=1, 22=2,22=NULL -> FALSE, FALSE, UNKNOWN -> 
+	which translate to NOT UNKNOWN, -> which eveluates to UNKNOWN */
+
+SELECT *
+FROM Sales.Customers AS C
+WHERE NOT EXISTS (SELECT * -- implicitly exclude NULLs
+				  FROM Sales.Orders AS O
+				  WHERE C.custid = O.custid);
+
+/* unlike IN EXISTS uses two-valued predicate logic. EXISTS always return TRUE or FALSE and never UNKNOWN!!!
+	When subquery stumbles into a NULL in O.custid, the expression evaluates to UNKNOWN and the row is filtered out. 
+	As far as the EXISTS predicate is concerned, the NULLcases are eleminiated nalurally, as though they weren't there. 
+	Therefore, it's safer to use NOT EXISTS than NOT IN. */
+
+DELETE FROM Sales.Orders WHERE custid IS NULL;
+
+/*	Substitution errors in subquery column names */
+
