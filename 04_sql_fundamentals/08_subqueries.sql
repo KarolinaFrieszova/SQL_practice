@@ -231,3 +231,40 @@ DELETE FROM Sales.Orders WHERE custid IS NULL;
 
 /*	Substitution errors in subquery column names */
 
+DROP TABLE IF EXISTS Sales.MyShippers;
+
+CREATE TABLE Sales.MyShippers 
+(	shipper_id INT NOT NULL,
+	companyname NVARCHAR(40) NOT NULL,
+	phone NVARCHAR(24) NOT NULL,
+	CONSTRAINT PK_MyShippers PRIMARY KEY(shipper_id)
+);
+
+INSERT INTO Sales.MyShippers (shipper_id, companyname, phone)
+	VALUES	(1, N'Shipper GVSUA', N'(503) 555 -0137'),
+			(2, N'Shipper ETYNR', N'(503) 555 -8902'),
+			(3, N'Shipper ZHISN', N'(503) 555 -6733');
+
+SELECT shipper_id, companyname
+FROM Sales.MyShippers
+WHERE shipper_id IN (SELECT shipper_id -- it doesn't find the column shipper_id in S.Orders tbl so it looks into the outer table
+					 FROM Sales.Orders
+					 WHERE custid = 43);
+
+SELECT shipper_id, companyname
+FROM Sales.MyShippers
+WHERE shipper_id IN (SELECT shipperid
+					 FROM Sales.Orders
+					 WHERE custid = 43);
+
+/*	Best practices: 
+	- use consistent attribute names across tables
+	- prefix column names in subqueries with the source table name or alias */
+
+SELECT shipper_id, companyname
+FROM Sales.MyShippers AS MS
+WHERE shipper_id IN (SELECT O.shipper_id
+					 FROM Sales.Orders AS O
+					 WHERE custid = 43);
+
+DROP TABLE IF EXISTS Sales.MyShippers;
