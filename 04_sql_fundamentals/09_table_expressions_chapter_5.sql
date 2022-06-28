@@ -125,3 +125,61 @@ SELECT orderyear, numcusts
 FROM C2
 WHERE numcusts > 70;
 
+-- Multiple references in CTEs
+-- CTE is named and defined first
+
+WITH YearlyCount AS
+(
+	SELECT YEAR(orderdate) AS orderyear, COUNT(DISTINCT custid) AS numcusts
+	FROM Sales.Orders
+	GROUP BY YEAR(orderdate)
+)
+SELECT Cur.orderyear, Cur.numcusts AS curnumcusts, Prv.numcusts AS prvnumcusts, Cur.numcusts - Prv.numcusts AS growth
+FROM YearlyCount AS Cur
+LEFT JOIN YearlyCount AS Prv
+ON Cur.orderyear = Prv.orderyear + 1;
+
+-- for performance you should persists the inner query in temporary table or a table variable
+
+-- Recursive CTEs
+-- CTEs are unique among table expressions in the sencse that they support recursion
+-- defined by at least two queries - at least one know as anchor and at least one know as the recursive member
+
+/*
+WITH <CTE_Name>[(<target_column_list>)] AS
+(
+	<anchor_member>
+	UNION ALL
+	<recursive_member>
+)
+<outer_query_against_CTE>;
+*/
+
+-- anchor query is ivoke only once
+-- recrusive is ivoke repetedly until it returns an empty set and has a reference to CTE which is the previous set
+
+-- The code demonstrates how to return information about an employee (Don Funk, employee ID 2) and all the employee's subordinates at all levels (direst or indirect)
+
+WITH EmpsCTE AS
+(
+	SELECT empid, mgrid, firstname, lastname
+	FROM HR.Employees
+	WHERE empid = 2
+
+	UNION ALL
+
+	SELECT C.empid, C.mgrid, C.firstname, C.lastname
+	FROM EmpsCTE AS P
+	INNER JOIN HR.Employees AS C
+	ON C.mgrid = P.empid
+
+)
+SELECT empid, mgrid, firstname, lastname
+FROM EmpsCTE;
+
+SELECT empid, mgrid, firstname, lastname
+FROM HR.Employees;
+
+
+
+

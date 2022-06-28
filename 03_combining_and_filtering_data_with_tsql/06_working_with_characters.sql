@@ -65,7 +65,7 @@ SET @startPosition = 1;
 SET @pos = 0;
 
 WHILE
-	CHARINDEX('''', @str, @startPosition) > 0
+	CHARINDEX('''', @str, @startPosition) > 0 -- CHARINDEX used insted of PATINDEX to avoid infinate loop (taking advantage of the third parametter)
 	OR CHARINDEX('-', @str, @startPosition) > 0
 	OR CHARINDEX(' ', @str, @startPosition) > 0
 	BEGIN
@@ -90,3 +90,12 @@ WHILE
 	END
 PRINT @str;
 
+-----------------------------------------------------------------
+-- we can save all of the above into a function and call it whenever we need
+
+SELECT * FROM EmployeesExtraCharacters;
+
+SELECT 
+	dbo.ProperWithCharacters(LastName) AS LastName,
+	dbo.ProperWithCharacters(FirstName) AS FirstName
+FROM EmployeesExtraCharacters;
