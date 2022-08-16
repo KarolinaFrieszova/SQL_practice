@@ -1,6 +1,3 @@
-/* Table-valued Parameters and Refactoring
-	allow multiple 
-*/
 
 /*	T-SQL Create Type Statement
 	Use to create aliases for primitive types, or to create custom data types 

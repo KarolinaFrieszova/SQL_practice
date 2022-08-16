@@ -98,8 +98,8 @@ GO
 DECLARE @ContactIdOut INT; -- variable declared
 
 EXEC dbo.InsertContact
-	@FirstName = 'Kara',
-	@LastName = 'Loyed',
+	@FirstName = 'Alla',
+	@LastName = 'Taylor',
 	@DateOfBirth = '1989-12-12',
 	@AllowContactByPhone = 0,
 	@ContactId = @ContactIdOut OUTPUT; -- must be added
@@ -110,6 +110,6 @@ EXEC dbo.InsertContact
 
 --EXEC dbo.SelectContact 1;
 
---SELECT * FROM dbo.Contacts
+SELECT * FROM dbo.Contacts
 
 
